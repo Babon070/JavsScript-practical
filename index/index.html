@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Geo IP Test</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready (function (){
+            $.get("https://api.ipify.org?format=json", function (data){
+                console.log(data);
+                $("#ip").val(data.ip);
+            });
+
+            function showLocationOnMap(location){
+                var map;
+
+                map = new google.maps.Map(document.getElementById('map'),{
+                    center: {lat: Number(location.latitude), lng: Number(location.longitude)},
+                    zoom: 15
+                });
+
+                var marker = new google.maps.Marker({
+                    position: {lat: Number(location.latitude), lng: Number(location.longitude)},
+                    map: map,
+                    title: "Public Ip:" + location.ipAddress + " @ " + location.city
+                });
+            }
+
+            $("#ipForm").submit(function (event){
+                event.preventDefault();
+                $.ajax({
+                    url: "GepIpTest",
+                    type: "POST",
+                    contentType: "application/x-www-from-urlencoded; charset=UTF-8",
+                    data: $.param({ipAddress : $("#ip").val()}),
+
+                    complete: function (data){
+                        console.log("Request complete");
+                    },
+
+                    success: function (data){
+                        $("#status").html(JSON.stringify(data));
+
+                        if (data.ipAddress != null){
+                            console.log("Success:" + data.ipAddress);
+                            showLocationOnMap(data);
+                        }
+                    },
+
+                    error: function (err){
+                        console.log(err);
+                        $("#status").html("Error:" + JSON.stringify(err));
+                    },
+                });
+            });
+
+        });
+    </script>
+</head>
+<body>
+<form>
+    <div id="status"></div>
+
+    <div id="map" style="height: 500px; width: 100%; position: absolute"></div>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDrAmbYpoTOPB7SgVxrTz5KOXnhxTgAjr0" async defer></script>
+</form>
+</body>
+</html>
